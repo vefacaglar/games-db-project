@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { gamesApi, submissionApi, platformApi } from '@/lib/endpoints';
 import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,10 +27,12 @@ export default function SubmitPlaytimePage() {
   const { user } = useAuth();
   const [games, setGames] = useState<Game[]>([]);
   const [platforms, setPlatforms] = useState<Platform[]>([]);
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
   
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<SubmissionFormData>({
     resolver: zodResolver(submissionSchema),
@@ -51,12 +53,17 @@ export default function SubmitPlaytimePage() {
   }, [user]);
 
   const onSubmit = async (data: SubmissionFormData) => {
+    setIsSubmittingForm(true);
     try {
       await submissionApi.create(data);
       alert('Playtime submitted! It will be visible after admin approval.');
-      router.push('/');
+      reset();
+      router.push('/dashboard');
     } catch (error) {
-      alert('Failed to submit playtime');
+      console.error('Failed to submit playtime:', error);
+      alert('Failed to submit playtime. Please try again.');
+    } finally {
+      setIsSubmittingForm(false);
     }
   };
 
@@ -64,67 +71,114 @@ export default function SubmitPlaytimePage() {
 
   return (
     <div className="container-custom py-8">
-      <Card className="max-w-2xl mx-auto">
-        <CardContent>
-          <h1 className="text-2xl font-bold mb-6">Submit Playtime</h1>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Game *</label>
-              <select {...register('game')} className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                <option value="">Select a game</option>
-                {games.map(g => (
-                  <option key={g._id} value={g._id}>{g.title}</option>
-                ))}
-              </select>
-              {errors.game && <p className="text-red-500 text-sm">{errors.game.message}</p>}
-            </div>
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Submit Playtime</h1>
+          <p className="text-gray-600 mt-1">Share your gaming experience with the community</p>
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Completion Type *</label>
-              <select {...register('category')} className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                <option value="main_story">Main Story</option>
-                <option value="main_plus_sides">Main + Side Content</option>
-                <option value="completionist">Completionist</option>
-                <option value="casual">Casual</option>
-                <option value="dropped">Dropped</option>
-              </select>
-              {errors.category && <p className="text-red-500 text-sm">{errors.category.message}</p>}
-            </div>
+        <Card>
+          <CardHeader>
+            <h2 className="text-lg font-semibold">Game Details</h2>
+          </CardHeader>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <CardContent className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Game *</label>
+                <select 
+                  {...register('game')} 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Select a game</option>
+                  {games.map(g => (
+                    <option key={g._id} value={g._id}>{g.title}</option>
+                  ))}
+                </select>
+                {errors.game && (
+                  <p className="mt-1 text-sm text-danger-600">{errors.game.message}</p>
+                )}
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Platform (optional)</label>
-              <select {...register('platform')} className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                <option value="">Any/N/A</option>
-                {platforms.map(p => (
-                  <option key={p._id} value={p.slug}>{p.name}</option>
-                ))}
-              </select>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Completion Type *</label>
+                  <select 
+                    {...register('category')} 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="main_story">Main Story</option>
+                    <option value="main_plus_sides">Main + Side Content</option>
+                    <option value="completionist">Completionist</option>
+                    <option value="casual">Casual</option>
+                    <option value="dropped">Dropped</option>
+                  </select>
+                  {errors.category && (
+                    <p className="mt-1 text-sm text-danger-600">{errors.category.message}</p>
+                  )}
+                </div>
 
-            <Input
-              label="Hours *"
-              type="number"
-              step="0.5"
-              {...register('hours', { valueAsNumber: true })}
-              error={errors.hours?.message}
-            />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Platform (optional)</label>
+                  <select 
+                    {...register('platform')} 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="">Any/N/A</option>
+                    {platforms.map(p => (
+                      <option key={p._id} value={p.slug}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
-              <textarea
-                {...register('notes')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                rows={3}
-                placeholder="Optional notes about your experience"
-              />
-            </div>
+              <div>
+                <Input
+                  label="Hours *"
+                  type="number"
+                  step="0.5"
+                  min="0.1"
+                  {...register('hours', { valueAsNumber: true })}
+                  error={errors.hours?.message}
+                  placeholder="e.g., 12.5"
+                />
+              </div>
 
-            <Button type="submit" isLoading={isSubmitting} className="w-full">
-              Submit
-            </Button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Notes (optional)</label>
+                <textarea
+                  {...register('notes')}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  rows={4}
+                  placeholder="Share your experience, tips, or any other thoughts about the game..."
+                />
+              </div>
+            </CardContent>
+
+            <CardFooter className="border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 w-full">
+                <p className="text-sm text-gray-600">
+                  Your submission will be reviewed by an admin before being published.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => router.back()}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    isLoading={isSubmitting || isSubmittingForm}
+                  >
+                    Submit Playtime
+                  </Button>
+                </div>
+              </div>
+            </CardFooter>
           </form>
-        </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

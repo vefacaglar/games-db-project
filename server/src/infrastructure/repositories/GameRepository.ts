@@ -5,12 +5,31 @@ import mongoose from 'mongoose';
 
 export class GameRepository implements IGameRepository {
   private mapToEntity(doc: GameDocument): IGame {
+    // doc.platforms may be ObjectId[] or populated Platform[]
+    const platforms = doc.platforms.map(p => {
+      if (typeof p === 'object' && p !== null && '_id' in p && 'name' in p && 'slug' in p) {
+        // Populated platform object
+        return {
+          _id: (p as any)._id.toString(),
+          name: (p as any).name,
+          slug: (p as any).slug
+        };
+      } else {
+        // ObjectId, shouldn't happen if populate is used
+        return {
+          _id: p.toString(),
+          name: 'Unknown Platform',
+          slug: 'unknown'
+        };
+      }
+    });
+
     return {
       _id: doc._id.toString(),
       title: doc.title,
       description: doc.description,
       genre: doc.genre,
-      platforms: doc.platforms.map(p => p.toString()),
+      platforms,
       coverImage: doc.coverImage,
       averageRating: doc.averageRating,
       totalRatings: doc.totalRatings,

@@ -27,4 +27,4 @@ api.interceptors.response.use(
 );
 
 export default api;
-export { authApi, gamesApi, listsApi, reviewsApi } from './endpoints';
+export { authApi, gamesApi, reviewsApi } from './endpoints';

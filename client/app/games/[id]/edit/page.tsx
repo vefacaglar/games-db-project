@@ -91,7 +91,7 @@ export default function EditGamePage() {
                       type="checkbox" 
                       value={p._id} 
                       {...register('platforms')}
-                      defaultChecked={game.platforms.includes(p._id)}
+                      defaultChecked={game.platforms.map(platform => platform._id).includes(p._id)}
                     />
                     {p.name}
                   </label>

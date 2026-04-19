@@ -13,12 +13,18 @@ export interface Platform {
   slug: string;
 }
 
+export interface PlatformInfo {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
 export interface Game {
   _id: string;
   title: string;
   description?: string;
   genre?: string;
-  platforms: string[];
+  platforms: PlatformInfo[];
   coverImage?: string;
   averageRating: number;
   totalRatings: number;
@@ -49,10 +55,16 @@ export interface PlaytimeSubmission {
   _id: string;
   gameId: string;
   userId?: string;
+  user?: {
+    _id: string;
+    username: string;
+  };
   category: PlaytimeCategory;
   platform?: string;
   hours: number;
   notes?: string;
+  rating?: number;
+  comment?: string;
   status: SubmissionStatus;
   createdAt: string;
   reviewedAt?: string;
@@ -87,4 +99,17 @@ export interface GameFilters {
 export interface GamesResponse {
   games: Game[];
   total: number;
+}
+
+export interface Review {
+  _id: string;
+  user: {
+    _id: string;
+    username: string;
+  };
+  game: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
 }

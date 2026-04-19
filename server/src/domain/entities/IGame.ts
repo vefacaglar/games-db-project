@@ -3,7 +3,7 @@ export interface IGame {
   title: string;
   description?: string;
   genre?: string;
-  platforms: string[];
+  platforms: { _id: string; name: string; slug: string }[];
   coverImage?: string;
   averageRating: number;
   totalRatings: number;
