@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { gamesApi, reviewsApi } from '@/lib/endpoints';
+import { gamesApi, reviewsApi, libraryApi } from '@/lib/endpoints';
 import { useAuth } from '@/context/AuthContext';
 import type { Game, PlaytimeSubmission } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
@@ -257,6 +257,26 @@ export default function GameDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
+                {user && (
+                  <Button 
+                    onClick={async () => {
+                      try {
+                        await libraryApi.add({ game: id as string, status: 'wishlist' });
+                        alert('Game added to your library!');
+                      } catch (error: any) {
+                        if (error.response?.status === 409) {
+                          alert('Game already in your library');
+                        } else {
+                          console.error('Failed to add game to library:', error);
+                          alert('Failed to add game to library');
+                        }
+                      }
+                    }}
+                    className="w-full"
+                  >
+                    Add to Library
+                  </Button>
+                )}
                 <Button 
                   onClick={() => router.push(`/submit?gameId=${id}`)}
                   className="w-full"

@@ -49,7 +49,7 @@ export interface PlaytimeEstimate {
 
 export type PlaytimeCategory = 'main_story' | 'main_plus_sides' | 'completionist' | 'casual' | 'dropped';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
-export type UserGameStatus = 'wishlist' | 'backlog' | 'playing' | 'completed' | 'dropped';
+export type UserGameStatus = 'wishlist' | 'backlog' | 'playing' | 'completed' | 'retired' | 'dropped';
 
 export interface PlaytimeSubmission {
   _id: string;

@@ -60,9 +60,18 @@ export class ReviewRepository implements IReviewRepository {
       userId: data.userId ? new mongoose.Types.ObjectId(data.userId) : undefined,
       category: data.category,
       platform: data.platform,
+      storefront: data.storefront,
       hours: data.hours,
       notes: data.notes,
-      status: PlaytimeSubmissionStatus.Approved // Auto-approve submissions
+      status: PlaytimeSubmissionStatus.Approved, // Auto-approve submissions
+      progressHours: data.progressHours,
+      progressMinutes: data.progressMinutes,
+      progressSeconds: data.progressSeconds,
+      startDate: data.startDate,
+      completionDate: data.completionDate,
+      libraryStatus: data.libraryStatus,
+      singlePlayerNotes: data.singlePlayerNotes,
+      speedrunNotes: data.speedrunNotes
     });
     return this.mapToEntity(doc);
   }

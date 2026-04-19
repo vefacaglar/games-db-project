@@ -26,14 +26,39 @@ export async function getPendingSubmissions() {
 }
 
 export async function createSubmission(data: CreateSubmissionDTO, user?: IUser) {
-  return reviewService.create({ 
+  // Convert startDate and completionDate strings to Date objects if provided
+  const submissionData = {
     gameId: data.game,
     category: data.category as PlaytimeCategory,
     platform: data.platform,
+    storefront: data.storefront,
     hours: data.hours,
     notes: data.notes,
-    userId: user?._id 
-  });
+    userId: user?._id,
+    progressHours: data.progressHours,
+    progressMinutes: data.progressMinutes,
+    progressSeconds: data.progressSeconds,
+    startDate: data.startDate ? new Date(data.startDate) : undefined,
+    completionDate: data.completionDate ? new Date(data.completionDate) : undefined,
+    libraryStatus: data.libraryStatus,
+    singlePlayerNotes: data.singlePlayerNotes,
+    speedrunNotes: data.speedrunNotes
+  };
+  
+  const submission = await reviewService.create(submissionData);
+  
+  // If libraryStatus provided, update user's library
+  if (user && data.libraryStatus && data.libraryStatus.length > 0) {
+    // Use the first status as the primary status
+    const primaryStatus = data.libraryStatus[0];
+    await addToLibrary({
+      user: user._id,
+      game: data.game,
+      status: primaryStatus as any
+    });
+  }
+  
+  return submission;
 }
 
 export async function updateSubmission(id: string, data: UpdateSubmissionDTO, user: IUser) {

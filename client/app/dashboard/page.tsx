@@ -17,6 +17,7 @@ const statusLabels: Record<UserGameStatus, string> = {
   backlog: 'Backlog',
   playing: 'Playing',
   completed: 'Completed',
+  retired: 'Retired',
   dropped: 'Dropped'
 };
 
@@ -25,6 +26,7 @@ const statusColors: Record<UserGameStatus, string> = {
   backlog: 'bg-yellow-100 text-yellow-800',
   playing: 'bg-blue-100 text-blue-800',
   completed: 'bg-green-100 text-green-800',
+  retired: 'bg-purple-100 text-purple-800',
   dropped: 'bg-red-100 text-red-800',
 };
 
@@ -79,7 +81,7 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  const tabs: Tab[] = ['all', 'wishlist', 'backlog', 'playing', 'completed', 'dropped'];
+  const tabs: Tab[] = ['all', 'wishlist', 'backlog', 'playing', 'completed', 'retired', 'dropped'];
 
   return (
     <div className="container-custom py-8">
@@ -151,6 +153,7 @@ export default function DashboardPage() {
                       <option value="backlog">Backlog</option>
                       <option value="playing">Playing</option>
                       <option value="completed">Completed</option>
+                      <option value="retired">Retired</option>
                       <option value="dropped">Dropped</option>
                     </select>
                   </div>

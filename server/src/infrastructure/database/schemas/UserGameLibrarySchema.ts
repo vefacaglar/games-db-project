@@ -20,7 +20,7 @@ const UserGameLibrarySchema = new Schema<UserGameLibraryDocument>(
   { timestamps: true }
 );
 
-UserGameLibrarySchema.index({ user: 1, game: 1 }, { unique: true });
+UserGameLibrarySchema.index({ user: 1, game: 1 });
 UserGameLibrarySchema.index({ user: 1 });
 UserGameLibrarySchema.index({ user: 1, status: 1 });
 

@@ -17,5 +17,6 @@ export enum UserGameStatus {
   Backlog = 'backlog',
   Playing = 'playing',
   Completed = 'completed',
+  Retired = 'retired',
   Dropped = 'dropped'
 }

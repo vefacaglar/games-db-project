@@ -88,6 +88,7 @@ export class ReviewService {
         submissionId: submission._id,
         hours: submission.hours,
         category: submission.category,
+        libraryStatus: data.libraryStatus,
       },
       createdAt: new Date()
     });
