@@ -1,30 +1,30 @@
-export interface IReview {
+import { PlaytimeCategory, PlaytimeSubmissionStatus } from './PlaytimeCategory.js';
+
+export interface IPlaytimeSubmission {
   _id: string;
-  user: string;
-  game: string;
-  rating: number;
-  mainTime: number;
-  mainPlusExtraTime?: number;
-  completionistTime?: number;
-  comment?: string;
+  gameId: string;
+  userId?: string;
+  category: PlaytimeCategory;
+  platform?: string;
+  hours: number;
+  notes?: string;
+  status: PlaytimeSubmissionStatus;
   createdAt: Date;
-  updatedAt: Date;
+  reviewedAt?: Date;
+  reviewedBy?: string;
 }
 
-export interface IReviewCreate {
-  user: string;
-  game: string;
-  rating: number;
-  mainTime: number;
-  mainPlusExtraTime?: number;
-  completionistTime?: number;
-  comment?: string;
+export interface IPlaytimeSubmissionCreate {
+  gameId: string;
+  userId?: string;
+  category: PlaytimeCategory;
+  platform?: string;
+  hours: number;
+  notes?: string;
 }
 
-export interface IReviewUpdate {
-  rating?: number;
-  mainTime?: number;
-  mainPlusExtraTime?: number;
-  completionistTime?: number;
-  comment?: string;
+export interface IPlaytimeSubmissionUpdate {
+  platform?: string;
+  hours?: number;
+  notes?: string;
 }

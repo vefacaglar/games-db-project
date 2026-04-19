@@ -1,59 +1,100 @@
 import { IReviewRepository } from '../../domain/repositories/IReviewRepository.js';
-import { IReview, IReviewCreate, IReviewUpdate } from '../../domain/entities/IReview.js';
+import { IPlaytimeSubmission, IPlaytimeSubmissionCreate, IPlaytimeSubmissionUpdate } from '../../domain/entities/IReview.js';
+import { PlaytimeCategory, PlaytimeSubmissionStatus } from '../../domain/entities/PlaytimeCategory.js';
 import { ReviewModel, ReviewDocument } from '../database/schemas/ReviewSchema.js';
 import mongoose from 'mongoose';
 
 export class ReviewRepository implements IReviewRepository {
-  private mapToEntity(doc: ReviewDocument): IReview {
+  private mapToEntity(doc: ReviewDocument): IPlaytimeSubmission {
     return {
       _id: doc._id.toString(),
-      user: doc.user.toString(),
-      game: doc.game.toString(),
-      rating: doc.rating,
-      mainTime: doc.mainTime,
-      mainPlusExtraTime: doc.mainPlusExtraTime,
-      completionistTime: doc.completionistTime,
-      comment: doc.comment,
+      gameId: doc.gameId.toString(),
+      userId: doc.userId?.toString(),
+      category: doc.category as PlaytimeCategory,
+      platform: doc.platform,
+      hours: doc.hours,
+      notes: doc.notes,
+      status: doc.status as PlaytimeSubmissionStatus,
       createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt
+      reviewedAt: doc.reviewedAt,
+      reviewedBy: doc.reviewedBy?.toString()
     };
   }
 
-  async findById(id: string): Promise<IReview | null> {
-    const doc = await ReviewModel.findById(id).populate('user', 'username').exec();
+  async findById(id: string): Promise<IPlaytimeSubmission | null> {
+    const doc = await ReviewModel.findById(id).exec();
     return doc ? this.mapToEntity(doc) : null;
   }
 
-  async findByGameId(gameId: string): Promise<IReview[]> {
+  async findByGameIdForStats(gameId: string): Promise<IPlaytimeSubmission[]> {
     const objectId = new mongoose.Types.ObjectId(gameId);
-    const docs = await ReviewModel.find({ game: objectId }).populate('user', 'username').exec();
+    const docs = await ReviewModel.find({ 
+      gameId: objectId, 
+      status: PlaytimeSubmissionStatus.Approved 
+    }).exec();
     return docs.map(this.mapToEntity);
   }
 
-  async findByUserId(userId: string): Promise<IReview[]> {
-    const objectId = new mongoose.Types.ObjectId(userId);
-    const docs = await ReviewModel.find({ user: objectId }).populate('game', 'title').exec();
+  async findByGameId(gameId: string): Promise<IPlaytimeSubmission[]> {
+    const objectId = new mongoose.Types.ObjectId(gameId);
+    const docs = await ReviewModel.find({ gameId: objectId }).exec();
     return docs.map(this.mapToEntity);
   }
 
-  async create(data: IReviewCreate): Promise<IReview> {
-    const doc = await ReviewModel.create({
-      user: new mongoose.Types.ObjectId(data.user),
-      game: new mongoose.Types.ObjectId(data.game),
-      rating: data.rating,
-      mainTime: data.mainTime,
-      mainPlusExtraTime: data.mainPlusExtraTime || 0,
-      completionistTime: data.completionistTime || 0,
-      comment: data.comment
-    });
-    const populated = await ReviewModel.findById(doc._id).populate('user', 'username').exec();
-    return this.mapToEntity(populated!);
-  }
-
-  async update(id: string, data: IReviewUpdate): Promise<IReview | null> {
-    const doc = await ReviewModel.findByIdAndUpdate(id, data, { new: true })
-      .populate('user', 'username')
+  async findPending(): Promise<IPlaytimeSubmission[]> {
+    const docs = await ReviewModel.find({ status: PlaytimeSubmissionStatus.Pending })
+      .populate('gameId', 'title')
       .exec();
+    return docs.map(this.mapToEntity);
+  }
+
+  async findByUserId(userId: string): Promise<IPlaytimeSubmission[]> {
+    const objectId = new mongoose.Types.ObjectId(userId);
+    const docs = await ReviewModel.find({ userId: objectId }).populate('gameId', 'title').exec();
+    return docs.map(this.mapToEntity);
+  }
+
+  async create(data: IPlaytimeSubmissionCreate): Promise<IPlaytimeSubmission> {
+    const doc = await ReviewModel.create({
+      gameId: new mongoose.Types.ObjectId(data.gameId),
+      userId: data.userId ? new mongoose.Types.ObjectId(data.userId) : undefined,
+      category: data.category,
+      platform: data.platform,
+      hours: data.hours,
+      notes: data.notes,
+      status: PlaytimeSubmissionStatus.Pending
+    });
+    return this.mapToEntity(doc);
+  }
+
+  async update(id: string, data: IPlaytimeSubmissionUpdate): Promise<IPlaytimeSubmission | null> {
+    const doc = await ReviewModel.findByIdAndUpdate(id, data, { new: true }).exec();
+    return doc ? this.mapToEntity(doc) : null;
+  }
+
+  async approve(id: string, adminUserId: string): Promise<IPlaytimeSubmission | null> {
+    const doc = await ReviewModel.findByIdAndUpdate(
+      id,
+      { 
+        status: PlaytimeSubmissionStatus.Approved,
+        reviewedAt: new Date(),
+        reviewedBy: new mongoose.Types.ObjectId(adminUserId)
+      },
+      { new: true }
+    ).exec();
+    return doc ? this.mapToEntity(doc) : null;
+  }
+
+  async reject(id: string, adminUserId: string): Promise<IPlaytimeSubmission | null> {
+    const doc = await ReviewModel.findByIdAndUpdate(
+      id,
+      { 
+        status: PlaytimeSubmissionStatus.Rejected,
+        reviewedAt: new Date(),
+        reviewedBy: new mongoose.Types.ObjectId(adminUserId)
+      },
+      { new: true }
+    ).exec();
     return doc ? this.mapToEntity(doc) : null;
   }
 
