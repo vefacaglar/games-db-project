@@ -11,8 +11,6 @@ export interface Platform {
   _id: string;
   name: string;
   slug: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface Game {
@@ -33,24 +31,42 @@ export interface Game {
   updatedAt: string;
 }
 
-export interface List {
-  _id: string;
-  name: string;
-  user: string;
-  games: Game[];
-  createdAt: string;
-  updatedAt: string;
+export interface PlaytimeEstimate {
+  category: string;
+  averageHours: number;
+  medianHours: number;
+  minHours: number;
+  maxHours: number;
+  submissionCount: number;
+  confidence: 'low' | 'medium' | 'high';
 }
 
-export interface Review {
+export type PlaytimeCategory = 'main_story' | 'main_plus_sides' | 'completionist' | 'casual' | 'dropped';
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
+export type UserGameStatus = 'wishlist' | 'backlog' | 'playing' | 'completed' | 'dropped';
+
+export interface PlaytimeSubmission {
   _id: string;
-  user: { _id: string; username: string };
-  game: string;
-  rating: number;
-  mainTime: number;
-  mainPlusExtraTime?: number;
-  completionistTime?: number;
-  comment?: string;
+  gameId: string;
+  userId?: string;
+  category: PlaytimeCategory;
+  platform?: string;
+  hours: number;
+  notes?: string;
+  status: SubmissionStatus;
+  createdAt: string;
+  reviewedAt?: string;
+}
+
+export interface UserLibraryEntry {
+  _id: string;
+  user: string;
+  game: Game;
+  status: UserGameStatus;
+  personalRating?: number;
+  personalNotes?: string;
+  startedAt?: string;
+  completedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

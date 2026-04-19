@@ -11,17 +11,28 @@ export function Navbar() {
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="text-xl font-bold">
-            GamesDB
+            Playtime Tracker
           </Link>
 
           <div className="flex items-center gap-4">
+            <Link href="/games" className="hover:text-gray-300">
+              Games
+            </Link>
             {user ? (
               <>
+                <Link href="/submit" className="hover:text-gray-300">
+                  Submit Time
+                </Link>
+                <Link href="/dashboard" className="hover:text-gray-300">
+                  My Library
+                </Link>
+                {user.role === 'admin' && (
+                  <Link href="/admin/submissions" className="hover:text-gray-300">
+                    Admin
+                  </Link>
+                )}
                 <Link href="/games/new" className="hover:text-gray-300">
                   Add Game
-                </Link>
-                <Link href="/profile" className="hover:text-gray-300">
-                  {user.username}
                 </Link>
                 <button onClick={logout} className="hover:text-gray-300">
                   Logout

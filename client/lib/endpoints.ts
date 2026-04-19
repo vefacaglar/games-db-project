@@ -1,5 +1,5 @@
 import api from './api';
-import type { User, Game, List, Review, Platform, AuthResponse, GamesResponse, GameFilters } from '@/types';
+import type { User, Game, Platform, PlaytimeSubmission, UserLibraryEntry, AuthResponse, GamesResponse, GameFilters, PlaytimeCategory } from '@/types';
 
 export const authApi = {
   register: (data: { username: string; email: string; password: string }) =>
@@ -34,35 +34,43 @@ export const gamesApi = {
   delete: (id: string) => api.delete(`/games/${id}`),
 };
 
-export const listsApi = {
-  getMy: () => api.get<List[]>('/lists'),
+export const submissionApi = {
+  getByGame: (gameId: string) =>
+    api.get<PlaytimeSubmission[]>(`/reviews/game/${gameId}`),
 
-  getById: (id: string) => api.get<List>(`/lists/${id}`),
+  getMy: () =>
+    api.get<PlaytimeSubmission[]>('/reviews/my'),
 
-  create: (data: { name: string; games?: string[] }) => api.post<List>('/lists', data),
+  getPending: () =>
+    api.get<PlaytimeSubmission[]>('/reviews/pending'),
 
-  update: (id: string, data: { name?: string; games?: string[] }) =>
-    api.put<List>(`/lists/${id}`, data),
+  create: (data: { game: string; category: PlaytimeCategory; platform?: string; hours: number; notes?: string }) =>
+    api.post<PlaytimeSubmission>('/reviews', data),
 
-  delete: (id: string) => api.delete(`/lists/${id}`),
-
-  addGame: (listId: string, gameId: string) =>
-    api.post<List>(`/lists/${listId}/games`, { gameId }),
-
-  removeGame: (listId: string, gameId: string) =>
-    api.delete(`/lists/${listId}/games`, { data: { gameId } }),
-};
-
-export const reviewsApi = {
-  getByGame: (gameId: string) => api.get<Review[]>(`/reviews/game/${gameId}`),
-
-  getMy: () => api.get<Review[]>('/reviews/my'),
-
-  create: (data: { game: string; rating: number; mainTime: number; mainPlusExtraTime?: number; completionistTime?: number; comment?: string }) =>
-    api.post<Review>('/reviews', data),
-
-  update: (id: string, data: { rating?: number; mainTime?: number; mainPlusExtraTime?: number; completionistTime?: number; comment?: string }) =>
-    api.put<Review>(`/reviews/${id}`, data),
+  update: (id: string, data: { platform?: string; hours?: number; notes?: string }) =>
+    api.put<PlaytimeSubmission>(`/reviews/${id}`, data),
 
   delete: (id: string) => api.delete(`/reviews/${id}`),
+
+  approve: (id: string) =>
+    api.post<PlaytimeSubmission>(`/reviews/${id}/approve`),
+
+  reject: (id: string) =>
+    api.post<PlaytimeSubmission>(`/reviews/${id}/reject`),
 };
+
+export const libraryApi = {
+  getMy: (status?: string) =>
+    api.get<UserLibraryEntry[]>('/library', { params: status ? { status } : undefined }),
+
+  add: (data: { game: string; status: string }) =>
+    api.post<UserLibraryEntry>('/library', data),
+
+  update: (id: string, data: { status?: string; personalRating?: number; personalNotes?: string }) =>
+    api.patch<UserLibraryEntry>(`/library/${id}`, data),
+
+  remove: (gameId: string) =>
+    api.delete(`/library/game/${gameId}`),
+};
+
+export const reviewsApi = submissionApi;
