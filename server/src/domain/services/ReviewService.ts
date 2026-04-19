@@ -78,19 +78,36 @@ export class ReviewService {
     }
 
     const submission = await this.reviewRepository.create(data);
+    
+    // Publish event to RabbitMQ for immediate stats update
+    const { rabbitMQService } = await import('../../infrastructure/messaging/RabbitMQService.js');
+    await rabbitMQService.publish('game-stats-update', {
+      gameId: submission.gameId,
+      type: 'submission-created',
+      submissionId: submission._id,
+    });
+    
     return submission;
   }
 
   async approve(id: string, adminUserId: string) {
+    // No longer needed as submissions are auto-approved
+    // But keep the method for backward compatibility
     const submission = await this.reviewRepository.approve(id, adminUserId);
-    if (submission) {
-      await this.calculateGameStats(submission.gameId);
-    }
     return submission;
   }
 
   async reject(id: string, adminUserId: string) {
     const submission = await this.reviewRepository.reject(id, adminUserId);
+    if (submission) {
+      // If a submission is rejected, recalculate stats
+      const { rabbitMQService } = await import('../../infrastructure/messaging/RabbitMQService.js');
+      await rabbitMQService.publish('game-stats-update', {
+        gameId: submission.gameId,
+        type: 'submission-deleted', // treat as deletion
+        submissionId: submission._id,
+      });
+    }
     return submission;
   }
 
@@ -124,7 +141,13 @@ export class ReviewService {
 
     const gameId = submission.gameId;
     const result = await this.reviewRepository.delete(id);
-    await this.calculateGameStats(gameId);
+    // Publish event to RabbitMQ
+    const { rabbitMQService } = await import('../../infrastructure/messaging/RabbitMQService.js');
+    await rabbitMQService.publish('game-stats-update', {
+      gameId,
+      type: 'submission-deleted',
+      submissionId: id,
+    });
     return result;
   }
 }

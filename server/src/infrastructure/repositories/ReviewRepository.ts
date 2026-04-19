@@ -62,7 +62,7 @@ export class ReviewRepository implements IReviewRepository {
       platform: data.platform,
       hours: data.hours,
       notes: data.notes,
-      status: PlaytimeSubmissionStatus.Pending
+      status: PlaytimeSubmissionStatus.Approved // Auto-approve submissions
     });
     return this.mapToEntity(doc);
   }
