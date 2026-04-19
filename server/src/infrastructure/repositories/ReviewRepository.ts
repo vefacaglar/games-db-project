@@ -29,8 +29,8 @@ export class ReviewRepository implements IReviewRepository {
   async findByGameIdForStats(gameId: string): Promise<IPlaytimeSubmission[]> {
     const objectId = new mongoose.Types.ObjectId(gameId);
     const docs = await ReviewModel.find({ 
-      gameId: objectId, 
-      status: PlaytimeSubmissionStatus.Approved 
+      gameId: objectId,
+      status: { $in: [PlaytimeSubmissionStatus.Approved, PlaytimeSubmissionStatus.Pending] }
     }).exec();
     return docs.map(this.mapToEntity);
   }

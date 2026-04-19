@@ -79,13 +79,30 @@ export class ReviewService {
 
     const submission = await this.reviewRepository.create(data);
     
-    // Publish event to RabbitMQ for immediate stats update
-    const { rabbitMQService } = await import('../../infrastructure/messaging/RabbitMQService.js');
-    await rabbitMQService.publish('game-stats-update', {
-      gameId: submission.gameId,
-      type: 'submission-created',
-      submissionId: submission._id,
+    // Outbox pattern: create outbox record for reliable messaging
+    const { OutboxModel } = await import('../../infrastructure/database/schemas/OutboxSchema.js');
+    await OutboxModel.create({
+      eventType: 'submission-created',
+      payload: {
+        gameId: submission.gameId,
+        submissionId: submission._id,
+        hours: submission.hours,
+        category: submission.category,
+      },
+      createdAt: new Date()
     });
+    
+    // Also publish to RabbitMQ (best effort)
+    try {
+      const { rabbitMQService } = await import('../../infrastructure/messaging/RabbitMQService.js');
+      await rabbitMQService.publish('game-stats-update', {
+        gameId: submission.gameId,
+        type: 'submission-created',
+        submissionId: submission._id,
+      });
+    } catch (error) {
+      console.error('Failed to publish to RabbitMQ, but outbox record saved:', error);
+    }
     
     return submission;
   }
