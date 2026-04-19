@@ -17,10 +17,7 @@ const gameSchema = z.object({
   description: z.string().optional(),
   genre: z.string().optional(),
   platforms: z.array(z.string()).optional(),
-  coverImage: z.string().url().optional(),
-  mainTime: z.number().min(0),
-  mainPlusExtraTime: z.number().min(0),
-  completionistTime: z.number().min(0),
+  coverImage: z.string().url().optional()
 });
 
 type GameFormData = z.infer<typeof gameSchema>;
@@ -34,12 +31,7 @@ export default function NewGamePage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<GameFormData>({
-    resolver: zodResolver(gameSchema),
-    defaultValues: {
-      mainTime: 0,
-      mainPlusExtraTime: 0,
-      completionistTime: 0,
-    }
+    resolver: zodResolver(gameSchema)
   });
 
   useEffect(() => {
@@ -86,12 +78,6 @@ export default function NewGamePage() {
             </div>
 
             <Input label="Cover Image URL (optional)" {...register('coverImage')} />
-            
-            <div className="grid grid-cols-3 gap-4">
-              <Input label="Main Time (h)" type="number" {...register('mainTime', { valueAsNumber: true })} />
-              <Input label="Main + Extra (h)" type="number" {...register('mainPlusExtraTime', { valueAsNumber: true })} />
-              <Input label="Completionist (h)" type="number" {...register('completionistTime', { valueAsNumber: true })} />
-            </div>
             
             <Button type="submit" isLoading={isSubmitting} className="w-full">
               Create Game

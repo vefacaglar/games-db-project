@@ -14,9 +14,9 @@ export class GameRepository implements IGameRepository {
       coverImage: doc.coverImage,
       averageRating: doc.averageRating,
       totalRatings: doc.totalRatings,
-      mainTime: doc.mainTime,
-      mainPlusExtraTime: doc.mainPlusExtraTime,
-      completionistTime: doc.completionistTime,
+      averageMainTime: doc.averageMainTime,
+      averageMainPlusExtraTime: doc.averageMainPlusExtraTime,
+      averageCompletionistTime: doc.averageCompletionistTime,
       createdBy: doc.createdBy.toString(),
       updatedBy: doc.updatedBy.toString(),
       createdAt: doc.createdAt,
@@ -87,6 +87,15 @@ export class GameRepository implements IGameRepository {
       updateData,
       { new: true }
     ).populate('platforms').exec();
+    return doc ? this.mapToEntity(doc) : null;
+  }
+
+  async updateTimes(id: string, averageMainTime: number, averageMainPlusExtraTime: number, averageCompletionistTime: number): Promise<IGame | null> {
+    const doc = await GameModel.findByIdAndUpdate(
+      id,
+      { averageMainTime, averageMainPlusExtraTime, averageCompletionistTime },
+      { new: true }
+    ).exec();
     return doc ? this.mapToEntity(doc) : null;
   }
 

@@ -24,9 +24,9 @@ export interface Game {
   coverImage?: string;
   averageRating: number;
   totalRatings: number;
-  mainTime: number;
-  mainPlusExtraTime: number;
-  completionistTime: number;
+  averageMainTime: number;
+  averageMainPlusExtraTime: number;
+  averageCompletionistTime: number;
   createdBy: string;
   updatedBy: string;
   createdAt: string;

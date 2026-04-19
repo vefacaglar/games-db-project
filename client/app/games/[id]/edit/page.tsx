@@ -17,10 +17,7 @@ const gameSchema = z.object({
   description: z.string().optional(),
   genre: z.string().optional(),
   platforms: z.array(z.string()).optional(),
-  coverImage: z.string().url().optional(),
-  mainTime: z.number().min(0),
-  mainPlusExtraTime: z.number().min(0),
-  completionistTime: z.number().min(0),
+  coverImage: z.string().url().optional()
 });
 
 type GameFormData = z.infer<typeof gameSchema>;
@@ -103,12 +100,6 @@ export default function EditGamePage() {
             </div>
 
             <Input label="Cover Image URL" {...register('coverImage')} defaultValue={game.coverImage || ''} />
-            
-            <div className="grid grid-cols-3 gap-4">
-              <Input label="Main Time (h)" type="number" {...register('mainTime', { valueAsNumber: true })} defaultValue={game.mainTime} />
-              <Input label="Main + Extra (h)" type="number" {...register('mainPlusExtraTime', { valueAsNumber: true })} defaultValue={game.mainPlusExtraTime} />
-              <Input label="Completionist (h)" type="number" {...register('completionistTime', { valueAsNumber: true })} defaultValue={game.completionistTime} />
-            </div>
             
             <Button type="submit" isLoading={isSubmitting} className="w-full">
               Save Changes

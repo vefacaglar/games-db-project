@@ -20,15 +20,27 @@ export class ReviewService {
     return this.reviewRepository.findByUserId(userId);
   }
 
-  async calculateGameRating(gameId: string) {
+  async calculateGameStats(gameId: string) {
     const reviews = await this.reviewRepository.findByGameId(gameId);
     if (reviews.length === 0) {
       await this.gameRepository.updateRating(gameId, 0, 0);
+      await this.gameRepository.updateTimes(gameId, 0, 0, 0);
       return;
     }
+    
     const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
     const averageRating = Math.round((totalRating / reviews.length) * 10) / 10;
     await this.gameRepository.updateRating(gameId, averageRating, reviews.length);
+
+    const mainTimes = reviews.filter(r => r.mainTime > 0).map(r => r.mainTime);
+    const mainPlusExtraTimes = reviews.filter(r => r.mainPlusExtraTime && r.mainPlusExtraTime > 0).map(r => r.mainPlusExtraTime!);
+    const completionistTimes = reviews.filter(r => r.completionistTime && r.completionistTime > 0).map(r => r.completionistTime!);
+
+    const avgMain = mainTimes.length > 0 ? Math.round(mainTimes.reduce((a, b) => a + b, 0) / mainTimes.length) : 0;
+    const avgMainPlus = mainPlusExtraTimes.length > 0 ? Math.round(mainPlusExtraTimes.reduce((a, b) => a + b, 0) / mainPlusExtraTimes.length) : 0;
+    const avgCompl = completionistTimes.length > 0 ? Math.round(completionistTimes.reduce((a, b) => a + b, 0) / completionistTimes.length) : 0;
+
+    await this.gameRepository.updateTimes(gameId, avgMain, avgMainPlus, avgCompl);
   }
 
   async create(data: IReviewCreate) {
@@ -39,7 +51,7 @@ export class ReviewService {
       throw new Error('Main time is required');
     }
     const review = await this.reviewRepository.create(data);
-    await this.calculateGameRating(data.game);
+    await this.calculateGameStats(data.game);
     return review;
   }
 
@@ -58,7 +70,7 @@ export class ReviewService {
     }
 
     const updated = await this.reviewRepository.update(id, data);
-    await this.calculateGameRating(review.game);
+    await this.calculateGameStats(review.game);
     return updated;
   }
 
@@ -74,7 +86,7 @@ export class ReviewService {
 
     const gameId = review.game;
     const result = await this.reviewRepository.delete(id);
-    await this.calculateGameRating(gameId);
+    await this.calculateGameStats(gameId);
     return result;
   }
 }

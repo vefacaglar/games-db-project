@@ -7,6 +7,7 @@ export interface IGameRepository {
   create(data: IGameCreate, userId: string): Promise<IGame>;
   update(id: string, data: IGameUpdate, userId: string): Promise<IGame | null>;
   updateRating(id: string, averageRating: number, totalRatings: number): Promise<IGame | null>;
+  updateTimes(id: string, averageMainTime: number, averageMainPlusExtraTime: number, averageCompletionistTime: number): Promise<IGame | null>;
   delete(id: string): Promise<boolean>;
 }
 

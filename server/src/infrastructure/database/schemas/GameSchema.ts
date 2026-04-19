@@ -16,9 +16,9 @@ const GameSchema = new Schema<GameDocument>(
     coverImage: { type: String },
     averageRating: { type: Number, default: 0, min: 0, max: 10 },
     totalRatings: { type: Number, default: 0 },
-    mainTime: { type: Number, required: true, min: 0 },
-    mainPlusExtraTime: { type: Number, required: true, min: 0 },
-    completionistTime: { type: Number, required: true, min: 0 },
+    averageMainTime: { type: Number, default: 0, min: 0 },
+    averageMainPlusExtraTime: { type: Number, default: 0, min: 0 },
+    averageCompletionistTime: { type: Number, default: 0, min: 0 },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }
   },

@@ -56,9 +56,9 @@ export default function Home() {
 
   const getTime = (game: Game) => {
     switch (activeTab) {
-      case 'mainPlusExtra': return game.mainPlusExtraTime;
-      case 'completionist': return game.completionistTime;
-      default: return game.mainTime;
+      case 'mainPlusExtra': return game.averageMainPlusExtraTime;
+      case 'completionist': return game.averageCompletionistTime;
+      default: return game.averageMainTime;
     }
   };
 
@@ -97,19 +97,19 @@ export default function Home() {
           onClick={() => setActiveTab('main')}
           className={`pb-2 px-4 ${activeTab === 'main' ? 'border-b-2 border-blue-600 font-semibold' : ''}`}
         >
-          Main
+          Main (avg)
         </button>
         <button
           onClick={() => setActiveTab('mainPlusExtra')}
           className={`pb-2 px-4 ${activeTab === 'mainPlusExtra' ? 'border-b-2 border-blue-600 font-semibold' : ''}`}
         >
-          Main + Extra
+          Main + Extra (avg)
         </button>
         <button
           onClick={() => setActiveTab('completionist')}
           className={`pb-2 px-4 ${activeTab === 'completionist' ? 'border-b-2 border-blue-600 font-semibold' : ''}`}
         >
-          Completionist
+          Completionist (avg)
         </button>
       </div>
 
