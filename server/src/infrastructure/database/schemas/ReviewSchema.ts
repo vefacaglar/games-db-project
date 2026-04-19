@@ -11,6 +11,9 @@ const ReviewSchema = new Schema<ReviewDocument>(
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     game: { type: Schema.Types.ObjectId, ref: 'Game', required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
+    mainTime: { type: Number, required: true, min: 0 },
+    mainPlusExtraTime: { type: Number, default: 0, min: 0 },
+    completionistTime: { type: Number, default: 0, min: 0 },
     comment: { type: String }
   },
   { timestamps: true }

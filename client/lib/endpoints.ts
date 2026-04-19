@@ -1,5 +1,5 @@
 import api from './api';
-import type { User, Game, List, Review, AuthResponse, GamesResponse, GameFilters } from '@/types';
+import type { User, Game, List, Review, Platform, AuthResponse, GamesResponse, GameFilters } from '@/types';
 
 export const authApi = {
   register: (data: { username: string; email: string; password: string }) =>
@@ -11,6 +11,14 @@ export const authApi = {
   getMe: () => api.get<User>('/auth/me'),
 
   updateMe: (data: Partial<User>) => api.put<User>('/auth/me', data),
+};
+
+export const platformApi = {
+  getAll: () => api.get<Platform[]>('/platforms'),
+
+  create: (data: { name: string; slug: string }) => api.post<Platform>('/platforms', data),
+
+  delete: (id: string) => api.delete(`/platforms/${id}`),
 };
 
 export const gamesApi = {
@@ -50,10 +58,10 @@ export const reviewsApi = {
 
   getMy: () => api.get<Review[]>('/reviews/my'),
 
-  create: (data: { game: string; rating: number; comment?: string }) =>
+  create: (data: { game: string; rating: number; mainTime: number; mainPlusExtraTime?: number; completionistTime?: number; comment?: string }) =>
     api.post<Review>('/reviews', data),
 
-  update: (id: string, data: { rating?: number; comment?: string }) =>
+  update: (id: string, data: { rating?: number; mainTime?: number; mainPlusExtraTime?: number; completionistTime?: number; comment?: string }) =>
     api.put<Review>(`/reviews/${id}`, data),
 
   delete: (id: string) => api.delete(`/reviews/${id}`),

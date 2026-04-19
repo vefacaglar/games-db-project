@@ -2,22 +2,25 @@
 
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { gamesApi } from '@/lib/endpoints';
+import { useEffect, useState } from 'react';
+import { gamesApi, platformApi } from '@/lib/endpoints';
 import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent, CardFooter } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import type { Platform } from '@/types';
 
 const gameSchema = z.object({
   title: z.string().min(1, 'Title required'),
   description: z.string().optional(),
   genre: z.string().optional(),
-  platform: z.string().optional(),
-  playTime: z.number().min(0),
+  platforms: z.array(z.string()).optional(),
   coverImage: z.string().url().optional(),
-  rating: z.number().min(0).max(10).optional(),
+  mainTime: z.number().min(0),
+  mainPlusExtraTime: z.number().min(0),
+  completionistTime: z.number().min(0),
 });
 
 type GameFormData = z.infer<typeof gameSchema>;
@@ -25,13 +28,23 @@ type GameFormData = z.infer<typeof gameSchema>;
 export default function NewGamePage() {
   const router = useRouter();
   const { user } = useAuth();
+  const [platforms, setPlatforms] = useState<Platform[]>([]);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<GameFormData>({
     resolver: zodResolver(gameSchema),
+    defaultValues: {
+      mainTime: 0,
+      mainPlusExtraTime: 0,
+      completionistTime: 0,
+    }
   });
+
+  useEffect(() => {
+    platformApi.getAll().then(res => setPlatforms(res.data)).catch(console.error);
+  }, []);
 
   if (!user) {
     router.push('/login');
@@ -40,10 +53,9 @@ export default function NewGamePage() {
 
   const onSubmit = async (data: GameFormData) => {
     try {
-      const platformArray = data.platform?.split(',').map(p => p.trim()) || [];
       await gamesApi.create({
         ...data,
-        platform: platformArray,
+        platforms: data.platforms || [],
       });
       router.push('/');
     } catch (error) {
@@ -60,10 +72,27 @@ export default function NewGamePage() {
             <Input label="Title *" {...register('title', { required: true })} error={errors.title?.message} />
             <Input label="Description" {...register('description')} />
             <Input label="Genre" {...register('genre')} />
-            <Input label="Platforms (comma separated)" placeholder="PC, PS5, Xbox" {...register('platform')} />
-            <Input label="Play Time (hours)" type="number" {...register('playTime', { valueAsNumber: true })} />
-            <Input label="Cover Image URL" {...register('coverImage')} />
-            <Input label="Rating (0-10)" type="number" step="0.1" {...register('rating', { valueAsNumber: true })} />
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Platforms</label>
+              <div className="flex flex-wrap gap-2">
+                {platforms.map(p => (
+                  <label key={p._id} className="flex items-center gap-1">
+                    <input type="checkbox" value={p._id} {...register('platforms')} />
+                    {p.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <Input label="Cover Image URL (optional)" {...register('coverImage')} />
+            
+            <div className="grid grid-cols-3 gap-4">
+              <Input label="Main Time (h)" type="number" {...register('mainTime', { valueAsNumber: true })} />
+              <Input label="Main + Extra (h)" type="number" {...register('mainPlusExtraTime', { valueAsNumber: true })} />
+              <Input label="Completionist (h)" type="number" {...register('completionistTime', { valueAsNumber: true })} />
+            </div>
+            
             <Button type="submit" isLoading={isSubmitting} className="w-full">
               Create Game
             </Button>

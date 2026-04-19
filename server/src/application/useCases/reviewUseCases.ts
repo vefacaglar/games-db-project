@@ -1,10 +1,12 @@
 import { ReviewService } from '../../domain/services/ReviewService.js';
 import { ReviewRepository } from '../../infrastructure/repositories/ReviewRepository.js';
+import { GameRepository } from '../../infrastructure/repositories/GameRepository.js';
 import { CreateReviewDTO, UpdateReviewDTO } from '../dto/ReviewDTO.js';
 import { IUser } from '../../domain/entities/IUser.js';
 
 const reviewRepository = new ReviewRepository();
-const reviewService = new ReviewService(reviewRepository);
+const gameRepository = new GameRepository();
+const reviewService = new ReviewService(reviewRepository, gameRepository);
 
 export async function getGameReviews(gameId: string) {
   return reviewService.findByGameId(gameId);

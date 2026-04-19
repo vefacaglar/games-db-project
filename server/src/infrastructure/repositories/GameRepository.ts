@@ -10,10 +10,13 @@ export class GameRepository implements IGameRepository {
       title: doc.title,
       description: doc.description,
       genre: doc.genre,
-      platform: doc.platform,
-      playTime: doc.playTime,
+      platforms: doc.platforms.map(p => p.toString()),
       coverImage: doc.coverImage,
-      rating: doc.rating,
+      averageRating: doc.averageRating,
+      totalRatings: doc.totalRatings,
+      mainTime: doc.mainTime,
+      mainPlusExtraTime: doc.mainPlusExtraTime,
+      completionistTime: doc.completionistTime,
       createdBy: doc.createdBy.toString(),
       updatedBy: doc.updatedBy.toString(),
       createdAt: doc.createdAt,
@@ -22,7 +25,7 @@ export class GameRepository implements IGameRepository {
   }
 
   async findById(id: string): Promise<IGame | null> {
-    const doc = await GameModel.findById(id).exec();
+    const doc = await GameModel.findById(id).populate('platforms').exec();
     return doc ? this.mapToEntity(doc) : null;
   }
 
@@ -38,7 +41,7 @@ export class GameRepository implements IGameRepository {
       query.genre = filters.genre;
     }
     if (filters?.platform) {
-      query.platform = { $in: [filters.platform] };
+      query.platforms = { $in: [new mongoose.Types.ObjectId(filters.platform)] };
     }
     if (filters?.search) {
       query.$text = { $search: filters.search };
@@ -49,7 +52,7 @@ export class GameRepository implements IGameRepository {
     const skip = (page - 1) * limit;
 
     const [games, total] = await Promise.all([
-      GameModel.find(query).skip(skip).limit(limit).exec(),
+      GameModel.find(query).populate('platforms').skip(skip).limit(limit).exec(),
       GameModel.countDocuments(query).exec()
     ]);
 
@@ -61,8 +64,10 @@ export class GameRepository implements IGameRepository {
 
   async create(data: IGameCreate, userId: string): Promise<IGame> {
     const objectId = new mongoose.Types.ObjectId(userId);
+    const platformIds = data.platforms?.map(p => new mongoose.Types.ObjectId(p)) || [];
     const doc = await GameModel.create({
       ...data,
+      platforms: platformIds,
       createdBy: objectId,
       updatedBy: objectId
     });
@@ -71,9 +76,24 @@ export class GameRepository implements IGameRepository {
 
   async update(id: string, data: IGameUpdate, userId: string): Promise<IGame | null> {
     const objectId = new mongoose.Types.ObjectId(userId);
+    const updateData: Record<string, unknown> = { ...data, updatedBy: objectId };
+    
+    if (data.platforms) {
+      updateData.platforms = data.platforms.map(p => new mongoose.Types.ObjectId(p));
+    }
+
     const doc = await GameModel.findByIdAndUpdate(
       id,
-      { ...data, updatedBy: objectId },
+      updateData,
+      { new: true }
+    ).populate('platforms').exec();
+    return doc ? this.mapToEntity(doc) : null;
+  }
+
+  async updateRating(id: string, averageRating: number, totalRatings: number): Promise<IGame | null> {
+    const doc = await GameModel.findByIdAndUpdate(
+      id,
+      { averageRating, totalRatings },
       { new: true }
     ).exec();
     return doc ? this.mapToEntity(doc) : null;

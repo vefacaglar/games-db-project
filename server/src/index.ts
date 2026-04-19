@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { config } from './infrastructure/config/index.js';
 import { connectDatabase } from './infrastructure/database/index.js';
-import { authRoutes, gameRoutes, listRoutes, reviewRoutes } from './presentation/routes/index.js';
+import { authRoutes, gameRoutes, listRoutes, reviewRoutes, platformRoutes } from './presentation/routes/index.js';
 
 const app = express();
 
@@ -17,6 +17,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/lists', listRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/platforms', platformRoutes);
 
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err.message);

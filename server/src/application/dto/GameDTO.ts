@@ -4,20 +4,22 @@ export const createGameSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().optional(),
   genre: z.string().optional(),
-  platform: z.array(z.string()).optional(),
-  playTime: z.number().min(0),
+  platforms: z.array(z.string()).optional(),
   coverImage: z.string().url().optional(),
-  rating: z.number().min(0).max(10).optional()
+  mainTime: z.number().min(0),
+  mainPlusExtraTime: z.number().min(0),
+  completionistTime: z.number().min(0)
 });
 
 export const updateGameSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().optional(),
   genre: z.string().optional(),
-  platform: z.array(z.string()).optional(),
-  playTime: z.number().min(0).optional(),
+  platforms: z.array(z.string()).optional(),
   coverImage: z.string().url().optional(),
-  rating: z.number().min(0).max(10).optional()
+  mainTime: z.number().min(0).optional(),
+  mainPlusExtraTime: z.number().min(0).optional(),
+  completionistTime: z.number().min(0).optional()
 });
 
 export const gameFiltersSchema = z.object({

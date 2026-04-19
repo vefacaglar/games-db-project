@@ -8,6 +8,8 @@ import type { Game, Review, List } from '@/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
+type Tab = 'main' | 'mainPlusExtra' | 'completionist';
+
 export default function GameDetailPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -16,6 +18,7 @@ export default function GameDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [lists, setLists] = useState<List[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<Tab>('main');
 
   useEffect(() => {
     if (id) loadGame();
@@ -66,6 +69,15 @@ export default function GameDetailPage() {
     }
   };
 
+  const getTime = () => {
+    if (!game) return 0;
+    switch (activeTab) {
+      case 'mainPlusExtra': return game.mainPlusExtraTime;
+      case 'completionist': return game.completionistTime;
+      default: return game.mainTime;
+    }
+  };
+
   if (loading) return <div className="container-custom py-8">Loading...</div>;
   if (!game) return <div className="container-custom py-8">Game not found</div>;
 
@@ -77,11 +89,35 @@ export default function GameDetailPage() {
             <img src={game.coverImage} alt={game.title} className="w-full rounded-lg mb-6" />
           )}
           <h1 className="text-3xl font-bold mb-4">{game.title}</h1>
-          <div className="flex gap-4 mb-6">
+          
+          <div className="flex gap-4 mb-4">
             <span className="px-3 py-1 bg-gray-200 rounded-full">{game.genre}</span>
-            <span className="px-3 py-1 bg-gray-200 rounded-full">{game.playTime}h</span>
-            <span className="px-3 py-1 bg-gray-200 rounded-full">{game.rating}/10</span>
+            <span className="px-3 py-1 bg-gray-200 rounded-full">
+              {game.averageRating > 0 ? `${game.averageRating}/5 (${game.totalRatings})` : 'No ratings'}
+            </span>
           </div>
+
+          <div className="flex gap-4 mb-6 border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('main')}
+              className={`pb-2 px-4 ${activeTab === 'main' ? 'border-b-2 border-blue-600 font-semibold' : ''}`}
+            >
+              Main ({game.mainTime}h)
+            </button>
+            <button
+              onClick={() => setActiveTab('mainPlusExtra')}
+              className={`pb-2 px-4 ${activeTab === 'mainPlusExtra' ? 'border-b-2 border-blue-600 font-semibold' : ''}`}
+            >
+              Main + Extra ({game.mainPlusExtraTime}h)
+            </button>
+            <button
+              onClick={() => setActiveTab('completionist')}
+              className={`pb-2 px-4 ${activeTab === 'completionist' ? 'border-b-2 border-blue-600 font-semibold' : ''}`}
+            >
+              Completionist ({game.completionistTime}h)
+            </button>
+          </div>
+
           <p className="text-gray-700 mb-6">{game.description}</p>
 
           <h2 className="text-xl font-semibold mb-4">Reviews</h2>
@@ -109,7 +145,7 @@ export default function GameDetailPage() {
             <CardContent>
               <h3 className="font-semibold mb-4">Info</h3>
               <div className="space-y-2 text-sm">
-                <p><span className="font-medium">Platforms:</span> {game.platform.join(', ')}</p>
+                <p><span className="font-medium">Platforms:</span> {game.platforms.join(', ')}</p>
               </div>
             </CardContent>
             {user && (

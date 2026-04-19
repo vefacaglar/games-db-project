@@ -7,15 +7,26 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Platform {
+  _id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Game {
   _id: string;
   title: string;
   description?: string;
   genre?: string;
-  platform: string[];
-  playTime: number;
+  platforms: string[];
   coverImage?: string;
-  rating: number;
+  averageRating: number;
+  totalRatings: number;
+  mainTime: number;
+  mainPlusExtraTime: number;
+  completionistTime: number;
   createdBy: string;
   updatedBy: string;
   createdAt: string;
@@ -36,6 +47,9 @@ export interface Review {
   user: { _id: string; username: string };
   game: string;
   rating: number;
+  mainTime: number;
+  mainPlusExtraTime?: number;
+  completionistTime?: number;
   comment?: string;
   createdAt: string;
   updatedAt: string;

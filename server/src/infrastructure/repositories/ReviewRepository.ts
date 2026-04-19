@@ -10,6 +10,9 @@ export class ReviewRepository implements IReviewRepository {
       user: doc.user.toString(),
       game: doc.game.toString(),
       rating: doc.rating,
+      mainTime: doc.mainTime,
+      mainPlusExtraTime: doc.mainPlusExtraTime,
+      completionistTime: doc.completionistTime,
       comment: doc.comment,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt
@@ -38,6 +41,9 @@ export class ReviewRepository implements IReviewRepository {
       user: new mongoose.Types.ObjectId(data.user),
       game: new mongoose.Types.ObjectId(data.game),
       rating: data.rating,
+      mainTime: data.mainTime,
+      mainPlusExtraTime: data.mainPlusExtraTime || 0,
+      completionistTime: data.completionistTime || 0,
       comment: data.comment
     });
     const populated = await ReviewModel.findById(doc._id).populate('user', 'username').exec();

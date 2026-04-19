@@ -3,10 +3,13 @@ export interface IGame {
   title: string;
   description?: string;
   genre?: string;
-  platform: string[];
-  playTime: number;
+  platforms: string[];
   coverImage?: string;
-  rating: number;
+  averageRating: number;
+  totalRatings: number;
+  averageMainTime: number;
+  averageMainPlusExtraTime: number;
+  averageCompletionistTime: number;
   createdBy: string;
   updatedBy: string;
   createdAt: Date;
@@ -17,18 +20,14 @@ export interface IGameCreate {
   title: string;
   description?: string;
   genre?: string;
-  platform?: string[];
-  playTime: number;
+  platforms?: string[];
   coverImage?: string;
-  rating?: number;
 }
 
 export interface IGameUpdate {
   title?: string;
   description?: string;
   genre?: string;
-  platform?: string[];
-  playTime?: number;
+  platforms?: string[];
   coverImage?: string;
-  rating?: number;
 }
