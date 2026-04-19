@@ -2,7 +2,8 @@
 
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { Controller } from 'react-hook-form';
 import { gamesApi, submissionApi, platformApi } from '@/lib/endpoints';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/Card';
@@ -25,32 +26,78 @@ type SubmissionFormData = z.infer<typeof submissionSchema>;
 export default function SubmitPlaytimePage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [games, setGames] = useState<Game[]>([]);
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+  const [gameSearchTerm, setGameSearchTerm] = useState('');
+  const [gameSearchResults, setGameSearchResults] = useState<Game[]>([]);
+  const [isSearchingGames, setIsSearchingGames] = useState(false);
+  const [showGameDropdown, setShowGameDropdown] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   const {
     register,
     handleSubmit,
     reset,
+    control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SubmissionFormData>({
     resolver: zodResolver(submissionSchema),
   });
 
+  // Load platforms on mount
   useEffect(() => {
     if (!user) {
       router.push('/login');
       return;
     }
-    Promise.all([
-      gamesApi.getAll({ limit: 100 }),
-      platformApi.getAll()
-    ]).then(([gamesRes, platformsRes]) => {
-      setGames(gamesRes.data.games);
-      setPlatforms(platformsRes.data);
-    });
-  }, [user]);
+    platformApi.getAll().then(res => setPlatforms(res.data));
+  }, [user, router]);
+
+  // Search games with debounce
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (gameSearchTerm.length < 2) {
+      setGameSearchResults([]);
+      setShowGameDropdown(false);
+      return;
+    }
+
+    setIsSearchingGames(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await gamesApi.getAll({ search: gameSearchTerm, limit: 20 });
+        setGameSearchResults(res.data.games);
+        setShowGameDropdown(true);
+      } catch (error) {
+        console.error('Failed to search games:', error);
+      } finally {
+        setIsSearchingGames(false);
+      }
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [gameSearchTerm]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowGameDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const onSubmit = async (data: SubmissionFormData) => {
     setIsSubmittingForm(true);
@@ -85,15 +132,67 @@ export default function SubmitPlaytimePage() {
             <CardContent className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Game *</label>
-                <select 
-                  {...register('game')} 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                >
-                  <option value="">Select a game</option>
-                  {games.map(g => (
-                    <option key={g._id} value={g._id}>{g.title}</option>
-                  ))}
-                </select>
+                <div className="relative" ref={dropdownRef}>
+                  <input
+                    type="text"
+                    value={gameSearchTerm}
+                    onChange={(e) => {
+                      setGameSearchTerm(e.target.value);
+                      if (selectedGame) {
+                        setSelectedGame(null);
+                        setValue('game', '');
+                      }
+                    }}
+                    onFocus={() => {
+                      if (gameSearchTerm.length >= 2 && gameSearchResults.length > 0) {
+                        setShowGameDropdown(true);
+                      }
+                    }}
+                    placeholder="Search for a game..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    autoComplete="off"
+                  />
+                  {isSearchingGames && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <div className="animate-spin h-4 w-4 border-2 border-primary-600 border-t-transparent rounded-full"></div>
+                    </div>
+                  )}
+                  
+                  {showGameDropdown && (
+                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity5 overflow-auto focus:outline-none">
+                      {gameSearchResults.length === 0 ? (
+                        <div className="px-4 py-2 text-gray-500">
+                          {isSearchingGames ? 'Searching...' : 'No games found'}
+                        </div>
+                      ) : (
+                        gameSearchResults.map((game) => (
+                          <div
+                            key={game._id}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setSelectedGame(game);
+                              setGameSearchTerm(game.title);
+                              setValue('game', game._id);
+                              setShowGameDropdown(false);
+                            }}
+                          >
+                            <div className="font-medium">{game.title}</div>
+                            {game.genre && (
+                              <div className="text-sm text-gray-500">{game.genre}</div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+                <Controller
+                  name="game"
+                  control={control}
+                  render={({ field }) => (
+                    <input type="hidden" {...field} />
+                  )}
+                />
                 {errors.game && (
                   <p className="mt-1 text-sm text-danger-600">{errors.game.message}</p>
                 )}
