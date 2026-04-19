@@ -42,6 +42,10 @@ export default function EditGamePage() {
       router.push('/login');
       return;
     }
+    if (user.role !== 'admin') {
+      router.push('/');
+      return;
+    }
     loadData();
   }, [id, user]);
 

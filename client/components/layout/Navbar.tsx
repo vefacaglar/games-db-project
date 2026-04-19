@@ -29,13 +29,15 @@ export function Navbar() {
                   My Library
                 </Link>
                 {user.role === 'admin' && (
-                  <Link href="/admin/submissions" className="text-gray-300 hover:text-white transition-colors">
-                    Admin
-                  </Link>
+                  <>
+                    <Link href="/admin/submissions" className="text-gray-300 hover:text-white transition-colors">
+                      Admin
+                    </Link>
+                    <Link href="/games/new" className="text-gray-300 hover:text-white transition-colors">
+                      Add Game
+                    </Link>
+                  </>
                 )}
-                <Link href="/games/new" className="text-gray-300 hover:text-white transition-colors">
-                  Add Game
-                </Link>
                 <button 
                   onClick={logout} 
                   className="text-gray-300 hover:text-white transition-colors"

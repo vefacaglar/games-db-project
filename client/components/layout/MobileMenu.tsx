@@ -55,21 +55,23 @@ export function MobileMenu() {
                   My Library
                 </Link>
                 {user.role === 'admin' && (
-                  <Link 
-                    href="/admin/submissions" 
-                    className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-md transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Admin
-                  </Link>
+                  <>
+                    <Link 
+                      href="/admin/submissions" 
+                      className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-md transition-colors"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Admin
+                    </Link>
+                    <Link 
+                      href="/games/new" 
+                      className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-md transition-colors"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Add Game
+                    </Link>
+                  </>
                 )}
-                <Link 
-                  href="/games/new" 
-                  className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-md transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Add Game
-                </Link>
                 <div className="pt-2 border-t border-gray-700">
                   <Button 
                     onClick={() => {

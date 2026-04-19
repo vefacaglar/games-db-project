@@ -112,7 +112,7 @@ export default function GameDetailPage() {
                 </div>
               </div>
               
-              {user && game.createdBy === user._id && (
+              {user && user.role === 'admin' && (
                 <div className="flex gap-2">
                   <Button 
                     onClick={() => router.push(`/games/${id}/edit`)}

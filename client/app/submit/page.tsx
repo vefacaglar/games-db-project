@@ -134,12 +134,21 @@ export default function SubmitPlaytimePage() {
               <div>
                 <Input
                   label="Hours *"
-                  type="number"
-                  step="0.5"
-                  min="0.1"
-                  {...register('hours', { valueAsNumber: true })}
+                  type="text"
+                  inputMode="decimal"
+                  {...register('hours', {
+                    required: 'Hours is required',
+                    setValueAs: value => {
+                      if (!value) return value;
+                      return parseFloat(value.toString().replace(',', '.'));
+                    },
+                    validate: value => {
+                      const num = parseFloat(value.toString().replace(',', '.'));
+                      return !isNaN(num) && num >= 0.1 || 'Please enter a valid number greater than 0.1';
+                    }
+                  })}
                   error={errors.hours?.message}
-                  placeholder="e.g., 12.5"
+                  placeholder="e.g., 12.5 or 12,5"
                 />
               </div>
 

@@ -19,7 +19,7 @@ export async function getGameById(id: string) {
 }
 
 export async function createGame(data: CreateGameDTO, user: IUser) {
-  return gameService.create(data, user._id);
+  return gameService.create(data, user._id, user.role);
 }
 
 export async function updateGame(id: string, data: UpdateGameDTO, user: IUser) {

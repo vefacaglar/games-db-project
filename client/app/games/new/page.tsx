@@ -41,6 +41,10 @@ export default function NewGamePage() {
       router.push('/login');
       return;
     }
+    if (user.role !== 'admin') {
+      router.push('/');
+      return;
+    }
     platformApi.getAll().then(res => setPlatforms(res.data)).catch(console.error);
   }, [user, router]);
 
