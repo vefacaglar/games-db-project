@@ -1,0 +1,95 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useParams, useRouter } from 'next/navigation';
+import { gamesApi } from '@/lib/endpoints';
+import { useAuth } from '@/context/AuthContext';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import type { Game } from '@/types';
+
+const gameSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  genre: z.string().optional(),
+  platform: z.string().optional(),
+  playTime: z.number().min(0),
+  coverImage: z.string().url().optional(),
+  rating: z.number().min(0).max(10).optional(),
+});
+
+type GameFormData = z.infer<typeof gameSchema>;
+
+export default function EditGamePage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
+  const [game, setGame] = useState<Game | null>(null);
+  const [loading, setLoading] = useState(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<GameFormData>({
+    resolver: zodResolver(gameSchema),
+  });
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    loadGame();
+  }, [id, user]);
+
+  const loadGame = async () => {
+    try {
+      const res = await gamesApi.getById(id as string);
+      setGame(res.data);
+    } catch (error) {
+      alert('Game not found');
+      router.push('/');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmit = async (data: GameFormData) => {
+    try {
+      const platformArray = data.platform?.split(',').map(p => p.trim()) || [];
+      await gamesApi.update(id as string, { ...data, platform: platformArray });
+      router.push(`/games/${id}`);
+    } catch (error) {
+      alert('Failed to update game');
+    }
+  };
+
+  if (loading) return <div className="container-custom py-8">Loading...</div>;
+  if (!game) return <div className="container-custom py-8">Game not found</div>;
+
+  return (
+    <div className="container-custom py-8">
+      <Card className="max-w-2xl mx-auto">
+        <CardContent>
+          <h1 className="text-2xl font-bold mb-6">Edit Game</h1>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <Input label="Title *" {...register('title')} defaultValue={game.title} />
+            <Input label="Description" {...register('description')} defaultValue={game.description} />
+            <Input label="Genre" {...register('genre')} defaultValue={game.genre} />
+            <Input label="Platforms" placeholder="PC, PS5" {...register('platform')} defaultValue={game.platform.join(', ')} />
+            <Input label="Play Time" type="number" {...register('playTime', { valueAsNumber: true })} defaultValue={game.playTime} />
+            <Input label="Cover Image URL" {...register('coverImage')} defaultValue={game.coverImage} />
+            <Input label="Rating" type="number" step="0.1" {...register('rating', { valueAsNumber: true })} defaultValue={game.rating} />
+            <Button type="submit" isLoading={isSubmitting} className="w-full">
+              Save Changes
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -9,7 +9,7 @@ const userService = new UserService(userRepository);
 
 export async function registerUser(data: CreateUserDTO) {
   const user = await userService.create(data);
-  const token = jwt.sign({ userId: user._id, role: user.role }, config.jwtSecret, { expiresIn: config.jwtExpiresIn });
+  const token = jwt.sign({ userId: user._id, role: user.role }, config.jwtSecret, { expiresIn: '7d' });
   return { user: { ...user, password: undefined }, token };
 }
 
@@ -24,7 +24,7 @@ export async function loginUser(data: LoginUserDTO) {
     throw new Error('Invalid credentials');
   }
 
-  const token = jwt.sign({ userId: user._id, role: user.role }, config.jwtSecret, { expiresIn: config.jwtExpiresIn });
+  const token = jwt.sign({ userId: user._id, role: user.role }, config.jwtSecret, { expiresIn: '7d' });
   return { user: { ...user, password: undefined }, token };
 }
 
