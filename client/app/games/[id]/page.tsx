@@ -258,7 +258,7 @@ export default function GameDetailPage() {
             <CardContent>
               <div className="space-y-3">
                 <Button 
-                  onClick={() => router.push('/submit')}
+                  onClick={() => router.push(`/submit?gameId=${id}`)}
                   className="w-full"
                 >
                   Submit Playtime
