@@ -18,13 +18,17 @@ export default function GameDetailPage() {
   const { user } = useAuth();
   const [game, setGame] = useState<Game | null>(null);
   const [reviews, setReviews] = useState<PlaytimeSubmission[]>([]);
+  const [userLibraryEntries, setUserLibraryEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('main');
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    if (id) loadGame();
-  }, [id]);
+    if (id) {
+      loadGame();
+      if (user) loadUserLibraryEntries();
+    }
+  }, [id, user]);
 
   const loadGame = async () => {
     try {
@@ -36,6 +40,20 @@ export default function GameDetailPage() {
       console.error('Failed to load game:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUserLibraryEntries = async () => {
+    try {
+      const res = await libraryApi.getMy();
+      // Filter entries for this game
+      const gameEntries = res.data.filter((entry: any) => {
+        const gameId = entry.game?._id || entry.game;
+        return gameId === id;
+      });
+      setUserLibraryEntries(gameEntries);
+    } catch (error) {
+      console.error('Failed to load user library entries:', error);
     }
   };
 
@@ -253,18 +271,45 @@ export default function GameDetailPage() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <h3 className="font-semibold">Quick Actions</h3>
+              <h3 className="font-semibold">My Games</h3>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
+                {user && userLibraryEntries.length > 0 ? (
+                  <div className="space-y-2">
+                    {userLibraryEntries.map((entry) => (
+                      <div
+                        key={entry._id}
+                        onClick={() => router.push(`/library/${entry._id}`)}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer"
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{entry.status}</p>
+                          <p className="text-xs text-gray-500">
+                            {entry.startedAt ? `Started: ${new Date(entry.startedAt).toLocaleDateString()}` : 'No start date'}
+                          </p>
+                        </div>
+                        <div className="text-gray-400">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                
                 {user && (
                   <Button 
                     onClick={async () => {
                       try {
-                        await libraryApi.add({ game: id as string, status: 'wishlist' });
-                        alert('Game added to your library!');
+                        const res = await libraryApi.add({ game: id as string, status: 'wishlist' });
+                        // Redirect to library entry detail page
+                        router.push(`/library/${res.data._id}`);
                       } catch (error: any) {
                         if (error.response?.status === 409) {
+                          // Already in library, get existing entry
+                          // TODO: fetch existing library entry ID
                           alert('Game already in your library');
                         } else {
                           console.error('Failed to add game to library:', error);
@@ -273,8 +318,9 @@ export default function GameDetailPage() {
                       }
                     }}
                     className="w-full"
+                    variant={userLibraryEntries.length > 0 ? 'secondary' : 'primary'}
                   >
-                    Add to Library
+                    {userLibraryEntries.length > 0 ? 'Add Another Entry' : 'Add to My Games'}
                   </Button>
                 )}
                 <Button 
